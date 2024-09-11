@@ -1,12 +1,14 @@
 #include <iostream>
 #include <filesystem>
 #include <unistd.h>
-#include "Module1/include/testing.h"
 #include <opencv2/opencv.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include "common/include/UserInterface.hpp"
+
 enum MenuChoice
 {
+    NoChoice = 0,
     ResizePx,
     CropResizePx,
     Crop,
@@ -15,16 +17,38 @@ enum MenuChoice
     Quit
 };
 
-void displayUsage()
+MenuChoice choiceFromInt(int choiceInt)
 {
-    std::cout << "Usage: ./Resizer <-i input_file_path> [-o output_file_path]\n";
+    switch (choiceInt)
+    {
+    case 1:
+        return MenuChoice::ResizePx;
+
+    case 2:
+        return MenuChoice::CropResizePx;
+
+    case 3:
+        return MenuChoice::Crop;
+
+    case 4:
+        return MenuChoice::ResizeFile;
+
+    case 5:
+        return MenuChoice::Display;
+
+    case 6:
+        return MenuChoice::Quit;
+
+    default:
+        return MenuChoice::NoChoice;
+    }
 }
 
 int main(int argc, char *argv[])
 {
     if (argc < 3)
     {
-        displayUsage();
+        UI::printUsage();
         return -1;
     }
 
@@ -43,7 +67,7 @@ int main(int argc, char *argv[])
             continue;
 
         default:
-            displayUsage();
+            UI::printUsage();
             return -1;
 
         case -1:
@@ -55,13 +79,14 @@ int main(int argc, char *argv[])
 
     if (inputFilePath.empty())
     {
-        displayUsage();
+        UI::printUsage();
         return -1;
     }
 
     if (!std::filesystem::exists(inputFilePath))
     {
         std::cout << "File " << inputFilePath << " does not exist\n";
+        return -1;
     }
 
     // std::cout << inputFilePath << std::endl;
@@ -74,15 +99,44 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    ////////////////////////////////START
+    ///////Main menu
 
-    cv::namedWindow("test");
+    MenuChoice choice;
 
-    cv::imshow("test", inputImage);
+    do
+    {
+        UI::printMenu();
 
-    cv::waitKey(0);
+        int choiceInt;
+        std::cin >> choiceInt;
 
-    ////////////////////////////////END
+        choice = choiceFromInt(choiceInt);
 
-    return 0;
+        if (choice == MenuChoice::Display)
+        {
+            std::cout << "Close the display to continue\n\n";
+
+            std::string displayName = "Display";
+            cv::namedWindow(displayName, cv::WINDOW_NORMAL);
+            // cv::setWindowProperty(displayName, cv::WND_PROP_FULLSCREEN, cv::WINDOW_NORMAL);
+            cv::imshow(displayName, inputImage);
+
+            do
+            {
+                auto keyPressed = cv::waitKey(100);
+
+                if (keyPressed == 27) // Esc button
+                {
+                    cv::destroyWindow(displayName);
+                    break;
+                }
+
+            } while (cv::getWindowProperty(displayName, cv::WND_PROP_VISIBLE) > 0);
+        }
+    } while (choice == MenuChoice::Display || choice == MenuChoice::NoChoice);
+
+    if (choice == MenuChoice::Quit)
+    {
+        return 0;
+    }
 }

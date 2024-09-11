@@ -7,7 +7,8 @@ project(Resizer VERSION 1.0)
 
 # subdirectories
 
-add_subdirectory(Module1)
+add_subdirectory(common)
+add_subdirectory(Image)
 
 # libraries
 
@@ -19,4 +20,4 @@ find_package(Catch2 3 REQUIRED)
 # executables
 
 add_executable(Resizer main.cpp)
-target_link_libraries(Resizer PUBLIC Module1 ${OpenCV_LIBS} Catch2::Catch2WithMain)
+target_link_libraries(Resizer PUBLIC UserInterface ${OpenCV_LIBS} Catch2::Catch2WithMain)
