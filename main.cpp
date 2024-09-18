@@ -1,48 +1,10 @@
 #include <iostream>
 #include <filesystem>
 #include <unistd.h>
-#include <opencv2/opencv.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include "common/include/UserInterface.hpp"
-
-enum MenuChoice
-{
-    NoChoice = 0,
-    ResizePx,
-    CropResizePx,
-    Crop,
-    ResizeFile,
-    Display,
-    Quit
-};
-
-MenuChoice choiceFromInt(int choiceInt)
-{
-    switch (choiceInt)
-    {
-    case 1:
-        return MenuChoice::ResizePx;
-
-    case 2:
-        return MenuChoice::CropResizePx;
-
-    case 3:
-        return MenuChoice::Crop;
-
-    case 4:
-        return MenuChoice::ResizeFile;
-
-    case 5:
-        return MenuChoice::Display;
-
-    case 6:
-        return MenuChoice::Quit;
-
-    default:
-        return MenuChoice::NoChoice;
-    }
-}
+#include "Image/include/Image.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -83,60 +45,103 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (!std::filesystem::exists(inputFilePath))
-    {
-        std::cout << "File " << inputFilePath << " does not exist\n";
-        return -1;
-    }
-
-    // std::cout << inputFilePath << std::endl;
-
-    cv::Mat inputImage = cv::imread(inputFilePath);
-
-    if (inputImage.empty())
-    {
-        std::cout << "Could not open or find the image" << std::endl;
-        return -1;
-    }
+    Image image(inputFilePath);
 
     ///////Main menu
 
     MenuChoice choice;
+    bool imageChanged = false;
+    bool imageSaved = false;
 
     do
     {
         UI::printMenu();
 
-        int choiceInt;
-        std::cin >> choiceInt;
+        choice = UI::getMenuChoice();
 
-        choice = choiceFromInt(choiceInt);
-
-        if (choice == MenuChoice::Display)
+        switch (choice)
         {
-            std::cout << "Close the display to continue\n\n";
+        case MenuChoice::ResizePx:
+        {
+            auto destinedSize = UI::getDestinedSize();
 
-            std::string displayName = "Display";
-            cv::namedWindow(displayName, cv::WINDOW_NORMAL);
-            // cv::setWindowProperty(displayName, cv::WND_PROP_FULLSCREEN, cv::WINDOW_NORMAL);
-            cv::imshow(displayName, inputImage);
-
-            do
+            try
             {
-                auto keyPressed = cv::waitKey(100);
+                image.resize(destinedSize);
+                imageChanged = true;
+            }
+            catch (const std::exception &e)
+            {
+                UI::printWrongInput();
+            }
+        }
+        break;
 
-                if (keyPressed == 27) // Esc button
+        case MenuChoice::Crop:
+        {
+            // TODO: pick crop corners on displayed image
+            UI::printSize(image.getSize());
+
+            auto corners = UI::getCropCorners();
+
+            try
+            {
+                image.crop(corners.first, corners.second);
+                imageChanged = true;
+            }
+            catch (const std::exception &e)
+            {
+                UI::printWrongInput();
+            }
+        }
+        break;
+
+        case MenuChoice::ResizeFile:
+            break;
+
+        case MenuChoice::Display:
+            std::cout << "Close the display to continue\n\n";
+            image.display();
+            break;
+
+        case MenuChoice::Save:
+            if (!imageChanged)
+            {
+                UI::printNothingToSave();
+                break;
+            }
+
+            if (outputFilePath.empty())
+            {
+                outputFilePath = UI::getOutputPath();
+            }
+
+            if (image.save(outputFilePath))
+            {
+                imageSaved = true;
+            }
+            else
+            {
+                UI::printSaveFailed();
+                outputFilePath.clear();
+            }
+            break;
+
+        case MenuChoice::Quit:
+            if (imageChanged && !imageSaved)
+            {
+                if (UI::getQuitUnsaved())
                 {
-                    cv::destroyWindow(displayName);
-                    break;
+                    return 0;
                 }
 
-            } while (cv::getWindowProperty(displayName, cv::WND_PROP_VISIBLE) > 0);
-        }
-    } while (choice == MenuChoice::Display || choice == MenuChoice::NoChoice);
+                break;
+            }
+            return 0;
 
-    if (choice == MenuChoice::Quit)
-    {
-        return 0;
-    }
+        case MenuChoice::NoChoice:
+            std::cout << "Wrong choice value\n\n";
+            break;
+        }
+    } while (true);
 }

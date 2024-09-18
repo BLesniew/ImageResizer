@@ -1,17 +1,23 @@
 #pragma once
 
-#include <filesystem>
 #include <opencv2/opencv.hpp>
 
-class Image
+#include "ImageBase.hpp"
+
+class Image : public ImageBase
 {
 public:
     Image() = delete;
     Image(std::filesystem::path inputImagePath);
 
-    bool save(std::filesystem::path path);
-    void display();
+    bool save(std::filesystem::path path) const override;
+    void display(std::string displayName = "Display") const override;
+    void crop(ImgPoint corner1, ImgPoint corner2) override;
+    ImgSize getSize() const override;
+    void resize(ImgSize destinedSize) override;
 
 private:
     cv::Mat mImage;
+    // TODO set extension when reading input file
+    std::string mExtension = ".jpg";
 };

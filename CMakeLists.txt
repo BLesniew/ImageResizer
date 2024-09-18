@@ -12,12 +12,12 @@ add_subdirectory(Image)
 
 # libraries
 
-find_package(OpenCV REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS})
+# find_package(OpenCV REQUIRED)
+# include_directories(${OpenCV_INCLUDE_DIRS})
 
 find_package(Catch2 3 REQUIRED)
 
 # executables
 
 add_executable(Resizer main.cpp)
-target_link_libraries(Resizer PUBLIC UserInterface ${OpenCV_LIBS} Catch2::Catch2WithMain)
+target_link_libraries(Resizer PUBLIC UserInterface Image Catch2::Catch2WithMain)
