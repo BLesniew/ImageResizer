@@ -10,7 +10,7 @@ void UI::printMenu()
     std::cout << "=============== WHAT DO YOU WANT TO DO? ===============\n";
     std::cout << "1) Resize the image to pixel size\n";
     std::cout << "2) Crop the image\n";
-    std::cout << "3) Shrink the file size (in MB)\n";
+    std::cout << "3) Shrink the file size\n";
     std::cout << "4) Display the image\n";
     std::cout << "5) Save the image\n";
     std::cout << "6) Exit the app\n";
@@ -76,7 +76,7 @@ bool UI::getQuitUnsaved()
     return choice == 'y';
 }
 
-ImgSize UI::getDestinedSize()
+ImgSize UI::getDestinedSizePx()
 {
     ImgSize destinedSize;
     std::cout << "Enter destined image size:\n";
@@ -84,6 +84,15 @@ ImgSize UI::getDestinedSize()
     std::cin >> destinedSize.width;
     std::cout << "height = ";
     std::cin >> destinedSize.height;
+
+    return destinedSize;
+}
+
+int UI::getDestinedFileSize()
+{
+    int destinedSize;
+    std::cout << "Enter destined file size (in bytes):\n";
+    std::cin >> destinedSize;
 
     return destinedSize;
 }

@@ -14,7 +14,8 @@ public:
     void display(std::string displayName = "Display") const override;
     void crop(ImgPoint corner1, ImgPoint corner2) override;
     ImgSize getSize() const override;
-    void resize(ImgSize destinedSize) override;
+    void resizePx(ImgSize destinedSize) override;
+    void resizeFile(int destinedSize) override;
 
 private:
     cv::Mat mImage;

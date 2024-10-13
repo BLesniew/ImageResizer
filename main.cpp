@@ -63,11 +63,11 @@ int main(int argc, char *argv[])
         {
         case MenuChoice::ResizePx:
         {
-            auto destinedSize = UI::getDestinedSize();
+            auto destinedSize = UI::getDestinedSizePx();
 
             try
             {
-                image.resize(destinedSize);
+                image.resizePx(destinedSize);
                 imageChanged = true;
             }
             catch (const std::exception &e)
@@ -97,7 +97,14 @@ int main(int argc, char *argv[])
         break;
 
         case MenuChoice::ResizeFile:
-            break;
+        {
+            auto destinedSize = UI::getDestinedFileSize();
+
+            image.resizeFile(destinedSize);
+            // TODO: check if image was, is fact, changed
+            imageChanged = true;
+        }
+        break;
 
         case MenuChoice::Display:
             std::cout << "Close the display to continue\n\n";

@@ -1,4 +1,4 @@
-add_library(Image STATIC src/Image.cpp)
+add_library(Image STATIC src/Image.cpp src/ImageDiskspaceHelper.cpp)
 target_include_directories(Image PUBLIC include)
 
 find_package(OpenCV REQUIRED)

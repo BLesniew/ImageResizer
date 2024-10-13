@@ -1,5 +1,7 @@
 #include "Image.hpp"
 
+#include "ImageDiskspaceHelper.hpp"
+
 Image::Image(std::filesystem::path inputFilePath)
 {
     if (!std::filesystem::exists(inputFilePath))
@@ -36,7 +38,7 @@ void Image::display(std::string displayName) const
 
 bool Image::save(std::filesystem::path path) const
 {
-    return cv::imwrite(path.string() + mExtension, mImage);
+    return cv::imwrite(path.string() + mExtension, mImage, ImageDiskspaceHelper::encodeParams);
 }
 
 void Image::crop(ImgPoint corner1, ImgPoint corner2)
@@ -56,7 +58,55 @@ ImgSize Image::getSize() const
     return {mImage.size().width, mImage.size().height};
 }
 
-void Image::resize(ImgSize destinedSize)
+void Image::resizePx(ImgSize destinedSize)
 {
     cv::resize(mImage, mImage, {destinedSize.width, destinedSize.height});
+}
+
+// TODO: check if can be optimized
+// TODO: add extension choice and isCompressionAllowed flag
+void Image::resizeFile(int destinedSize)
+{
+    ImageDiskspaceHelper diskspaceHelper(mImage);
+
+    auto diskpaceMap = diskspaceHelper.getDiskspace();
+    auto bestExtension = std::min_element(diskpaceMap.begin(), diskpaceMap.end(),
+                                          [](const auto &l, const auto &r)
+                                          { return l.second < r.second; });
+    mExtension = bestExtension->first;
+
+    int minJpgQuality = 80;
+    while (bestExtension->second > destinedSize && ImageDiskspaceHelper::jpgQuality > minJpgQuality)
+    {
+        int qualityLoweringStep = 2;
+        if (ImageDiskspaceHelper::jpgQuality > minJpgQuality)
+        {
+            ImageDiskspaceHelper::jpgQuality = std::max(ImageDiskspaceHelper::jpgQuality - qualityLoweringStep, minJpgQuality);
+        }
+
+        diskspaceHelper.recalculate(mImage);
+        diskpaceMap = diskspaceHelper.getDiskspace();
+        bestExtension = std::min_element(diskpaceMap.begin(), diskpaceMap.end(),
+                                         [](const auto &l, const auto &r)
+                                         { return l.second < r.second; });
+        mExtension = bestExtension->first;
+    }
+
+    while (bestExtension->second > destinedSize)
+    {
+        int imageResizePxPercentStep = 10;
+
+        ImgSize newSize;
+        newSize.width = (int)(mImage.size().width * 0.01 * (100 - imageResizePxPercentStep));
+        newSize.height = (int)(mImage.size().height * 0.01 * (100 - imageResizePxPercentStep));
+
+        resizePx(newSize);
+
+        diskspaceHelper.recalculate(mImage);
+        diskpaceMap = diskspaceHelper.getDiskspace();
+        bestExtension = std::min_element(diskpaceMap.begin(), diskpaceMap.end(),
+                                         [](const auto &l, const auto &r)
+                                         { return l.second < r.second; });
+        mExtension = bestExtension->first;
+    }
 }

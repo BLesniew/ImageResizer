@@ -3,6 +3,7 @@
 #include <iostream>
 #include <filesystem>
 
+// TODO: move as much headers into cpp files as possible
 #include "ImageTypes.hpp"
 
 enum MenuChoice
@@ -28,7 +29,8 @@ public:
     static std::pair<ImgPoint, ImgPoint> getCropCorners();
     static std::filesystem::path getOutputPath();
     static bool getQuitUnsaved();
-    static ImgSize getDestinedSize();
+    static ImgSize getDestinedSizePx();
+    static int getDestinedFileSize(); // in bytes
 
     template <typename T>
     static void printSize(T size)
