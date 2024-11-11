@@ -100,9 +100,10 @@ int main(int argc, char *argv[])
         {
             auto destinedSize = UI::getDestinedFileSize();
 
-            image.resizeFile(destinedSize);
-            // TODO: check if image was, is fact, changed
-            imageChanged = true;
+            if (image.resizeFile(destinedSize))
+            {
+                imageChanged = true;
+            }
         }
         break;
 

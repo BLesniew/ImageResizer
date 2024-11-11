@@ -3,7 +3,6 @@
 #include <iostream>
 #include <filesystem>
 
-// TODO: move as much headers into cpp files as possible
 #include "ImageTypes.hpp"
 
 enum MenuChoice

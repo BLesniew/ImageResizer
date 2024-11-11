@@ -15,10 +15,9 @@ public:
     void crop(ImgPoint corner1, ImgPoint corner2) override;
     ImgSize getSize() const override;
     void resizePx(ImgSize destinedSize) override;
-    void resizeFile(int destinedSize) override;
+    bool resizeFile(int destinedSize) override;
 
 private:
     cv::Mat mImage;
-    // TODO set extension when reading input file
-    std::string mExtension = ".jpg";
+    std::string mExtension;
 };

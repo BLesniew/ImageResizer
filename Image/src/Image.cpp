@@ -4,6 +4,17 @@
 
 Image::Image(std::filesystem::path inputFilePath)
 {
+    auto extension = inputFilePath.extension();
+
+    if (ImageDiskspaceHelper::allowedExtensions.find(extension) != ImageDiskspaceHelper::allowedExtensions.end())
+    {
+        mExtension = extension;
+    }
+    else
+    {
+        mExtension = *ImageDiskspaceHelper::allowedExtensions.begin();
+    }
+
     if (!std::filesystem::exists(inputFilePath))
     {
         throw std::runtime_error("File " + inputFilePath.string() + " does not exist");
@@ -41,10 +52,9 @@ bool Image::save(std::filesystem::path path) const
     return cv::imwrite(path.string() + mExtension, mImage, ImageDiskspaceHelper::encodeParams);
 }
 
+// right collumn and bottom row not included
 void Image::crop(ImgPoint corner1, ImgPoint corner2)
 {
-    // TODO: Check if inclusive
-
     int xMin = std::min(corner1.x, corner2.x);
     int yMin = std::min(corner1.y, corner2.y);
     int width = std::abs(corner1.x - corner2.x);
@@ -65,9 +75,12 @@ void Image::resizePx(ImgSize destinedSize)
 
 // TODO: check if can be optimized
 // TODO: add extension choice and isCompressionAllowed flag
-void Image::resizeFile(int destinedSize)
+bool Image::resizeFile(int destinedSize)
 {
     ImageDiskspaceHelper diskspaceHelper(mImage);
+
+    const std::string initialExtension = mExtension;
+    bool isResized = false;
 
     auto diskpaceMap = diskspaceHelper.getDiskspace();
     auto bestExtension = std::min_element(diskpaceMap.begin(), diskpaceMap.end(),
@@ -101,6 +114,7 @@ void Image::resizeFile(int destinedSize)
         newSize.height = (int)(mImage.size().height * 0.01 * (100 - imageResizePxPercentStep));
 
         resizePx(newSize);
+        isResized = true;
 
         diskspaceHelper.recalculate(mImage);
         diskpaceMap = diskspaceHelper.getDiskspace();
@@ -109,4 +123,6 @@ void Image::resizeFile(int destinedSize)
                                          { return l.second < r.second; });
         mExtension = bestExtension->first;
     }
+
+    return isResized || (initialExtension != mExtension);
 }

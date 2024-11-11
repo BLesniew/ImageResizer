@@ -11,5 +11,5 @@ public:
     virtual void crop(ImgPoint corner1, ImgPoint corner2) = 0;
     virtual ImgSize getSize() const = 0;
     virtual void resizePx(ImgSize destinedSize) = 0;
-    virtual void resizeFile(int destinedSize) = 0;
+    virtual bool resizeFile(int destinedSize) = 0;
 };
