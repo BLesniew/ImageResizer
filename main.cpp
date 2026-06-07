@@ -1,51 +1,27 @@
 #include <iostream>
 #include <filesystem>
 #include <unistd.h>
-#include <catch2/catch_test_macros.hpp>
 
 #include "common/include/UserInterface.hpp"
+#include "common/include/CliParser.hpp"
 #include "Image/include/Image.hpp"
 
 int main(int argc, char *argv[])
 {
-    if (argc < 3)
-    {
+    CliParser parser(argc, argv);
+    if(!parser.isValid) {
         UI::printUsage();
         return -1;
     }
 
-    std::filesystem::path inputFilePath, outputFilePath;
-
-    for (;;)
+    if (!std::filesystem::exists(parser.inputFilePath) || !std::filesystem::is_regular_file(parser.inputFilePath))
     {
-        switch (getopt(argc, argv, "i:o:"))
-        {
-        case 'i':
-            inputFilePath = optarg;
-            continue;
-
-        case 'o':
-            outputFilePath = optarg;
-            continue;
-
-        default:
-            UI::printUsage();
-            return -1;
-
-        case -1:
-            break;
-        }
-
-        break;
-    }
-
-    if (inputFilePath.empty())
-    {
+        UI::printInputFileNotFound(parser.inputFilePath);
         UI::printUsage();
         return -1;
     }
 
-    Image image(inputFilePath);
+    Image image(parser.inputFilePath);
 
     ///////Main menu
 
@@ -119,19 +95,19 @@ int main(int argc, char *argv[])
                 break;
             }
 
-            if (outputFilePath.empty())
+            if (parser.outputFilePath.empty())
             {
-                outputFilePath = UI::getOutputPath();
+                parser.outputFilePath = UI::getOutputPath();
             }
 
-            if (image.save(outputFilePath))
+            if (image.save(parser.outputFilePath))
             {
                 imageSaved = true;
             }
             else
             {
                 UI::printSaveFailed();
-                outputFilePath.clear();
+                parser.outputFilePath.clear();
             }
             break;
 

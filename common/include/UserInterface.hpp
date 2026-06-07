@@ -24,6 +24,7 @@ public:
     static void printWrongInput();
     static void printNothingToSave();
     static void printSaveFailed();
+    static void printInputFileNotFound(const std::filesystem::path &path);
 
     static std::pair<ImgPoint, ImgPoint> getCropCorners();
     static std::filesystem::path getOutputPath();

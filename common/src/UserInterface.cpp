@@ -38,6 +38,11 @@ void UI::printSaveFailed()
     std::cout << "File save failed, path forgotten, please try again\n";
 }
 
+void UI::printInputFileNotFound(const std::filesystem::path &path)
+{
+    std::cerr << "ERROR: Input file '" << path << "' does not exist or is not a regular file\n";
+}
+
 std::pair<ImgPoint, ImgPoint> UI::getCropCorners()
 {
     ImgPoint corner1, corner2;

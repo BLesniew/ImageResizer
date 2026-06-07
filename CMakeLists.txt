@@ -5,19 +5,25 @@ set (CMAKE_CXX_FLAGS "-Wall -Werror -Wextra -Wpedantic")
 
 project(Resizer VERSION 1.0)
 
+option(BUILD_TESTING "Build unit tests" ON)
+
 # subdirectories
 
 add_subdirectory(common)
 add_subdirectory(Image)
 
-# libraries
-
-# find_package(OpenCV REQUIRED)
-# include_directories(${OpenCV_INCLUDE_DIRS})
-
-find_package(Catch2 3 REQUIRED)
+if(BUILD_TESTING)
+    enable_testing()
+    find_package(Catch2 3 REQUIRED)
+endif()
 
 # executables
 
 add_executable(Resizer main.cpp)
-target_link_libraries(Resizer PUBLIC UserInterface Image Catch2::Catch2WithMain)
+target_link_libraries(Resizer PUBLIC common Image)
+
+if(BUILD_TESTING)
+    add_subdirectory(common/testing)
+    add_subdirectory(Image/testing)
+
+endif()
